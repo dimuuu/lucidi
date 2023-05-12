@@ -1,0 +1,8 @@
+{
+  "name": "Lucidi",
+  "id": "1235943434768675768",
+  "api": "1.0.0",
+  "main": "public/code.js",
+  "ui": "public/index.html",
+  "editorType": ["figma"]
+}
