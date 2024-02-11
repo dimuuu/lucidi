@@ -82,6 +82,10 @@
   }
 
   .checkbox {
+  &.preview {
+    margin: -4px -9px;
+  }
+    
 	&__label {
 		color: var(--figma-color-text);
 	}

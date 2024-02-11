@@ -8,11 +8,13 @@
   let patternValue = "$N $A%";
   let opacitiesValue = "80, 60, 40, 20, 10";
   let shouldCleanValue = false;
+  let stylesToChange: InitialStyle[] = [];
 
   onmessage = (event: MessageEvent) => {
     switch (event.data.pluginMessage.type) {
       case MESSAGE.INIT_STYLES:
         stylesList = event.data.pluginMessage.styles;
+        stylesToChange = [...stylesList];
         break;
       case MESSAGE.INIT_PARAMS:
         const { opacities, pattern, shouldClean } =
@@ -25,6 +27,28 @@
         break;
     }
     return;
+  };
+
+  const updateStylesToChange = (item: InitialStyle, event: Event) => {
+    const inputElement = event.target as HTMLInputElement;
+    const checked = inputElement.checked;
+    if (checked) {
+      stylesToChange = [...stylesToChange, item];
+    } else {
+      stylesToChange = stylesToChange.filter((i) => i !== item);
+    }
+
+    return !!stylesToChange.find((i) => i === item);
+  };
+
+  const selectAllStyles = (event: Event) => {
+    const inputElement = event.target as HTMLInputElement;
+    const checked = inputElement.checked;
+    if (checked) {
+      stylesToChange = stylesList;
+    } else {
+      stylesToChange = [];
+    }
   };
 
   $: opacitiesList = opacitiesValue
@@ -57,6 +81,7 @@
           opacities: opacitiesList,
           pattern: patternValue,
           shouldClean: shouldCleanValue,
+          toSync: stylesToChange,
         },
       },
       "*"
@@ -111,12 +136,32 @@
   <div class="container preview">
     <div class="preview-header">
       <div class="type type--small type--bold">Preview</div>
+      <div class="checkbox preview">
+        <input
+          id="selectAllStyles"
+          type="checkbox"
+          class="checkbox__box"
+          checked={stylesList.length === stylesToChange.length}
+          on:change={(e) => selectAllStyles(e)}
+        />
+        <label for="selectAllStyles" class="checkbox__label">Sync all</label>
+      </div>
     </div>
     <div class="style-list">
       {#each stylesList as stylesItem}
         <div class="opacity-list">
-          <span class="type type--small type--secondary">{stylesItem.name}</span
-          >
+          <div class="checkbox preview">
+            <input
+              id={stylesItem.id}
+              type="checkbox"
+              class="checkbox__box"
+              checked={!!stylesToChange.find((i) => i === stylesItem)}
+              on:change={(e) => updateStylesToChange(stylesItem, e)}
+            />
+            <label for={stylesItem.id} class="checkbox__label"
+              ><strong>{stylesItem.name}</strong></label
+            >
+          </div>
           <div class="color-style">
             <div class="color-style-circle">
               <div class="color-style-circle__checkered" />
@@ -211,6 +256,9 @@
   .preview-header {
     padding: 12px 16px;
     border-bottom: 1px solid var(--figma-color-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
 
   .input-content {
@@ -283,11 +331,15 @@
         ),
         white;
       background-repeat: repeat, repeat;
-      background-position: 0px 0, 4px 4px;
+      background-position:
+        0px 0,
+        4px 4px;
       transform-origin: 0 0 0;
       background-origin: padding-box, padding-box;
       background-clip: border-box, border-box;
-      background-size: 8px 8px, 8px 8px;
+      background-size:
+        8px 8px,
+        8px 8px;
     }
 
     &__opaque {

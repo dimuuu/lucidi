@@ -48,7 +48,7 @@ figma.ui.onmessage = (message) => {
   solidColorStyles = getLocalSolidColorStyles();
 
   if (message.type === MESSAGE.SYNC_STYLES) {
-    const { opacities, pattern, shouldClean } = message;
+    const { opacities, pattern, shouldClean, toSync } = message;
 
     figma.root.setPluginData(
       "lastParams",
@@ -59,6 +59,7 @@ figma.ui.onmessage = (message) => {
       if (style.paints[0].type !== "SOLID") return;
       if (style.paints[0].opacity !== 1) return;
       if (style.paints.length !== 1) return;
+      if (!toSync.some((s: InitialStyle) => s.id === style.id)) return;
 
       const color = style.paints[0].color;
       const originalStyleId = style.id;
