@@ -9,8 +9,9 @@ Figma doesn't support maintaining layer style while changing opacity, so designe
 ### Features
 
 **Quickly create opacity styles based of current solid color styles**
+
 1. Enter a list of opacities you need in your color library;
-2. Write a pattern for style name (e.g. $N-alpha$A will turn into primary-alpha50 );
+2. Write a pattern for style name (e.g. for a style called "primary" the pattern `$N-alpha$A` will turn into `primary-alpha50`);
 3. Press "Create & sync styles".
 
 **Sync your existing colors when solid solid opaque colors change**
@@ -28,12 +29,14 @@ Optionally rewrite and delete opacity styles that don't match your parameters.
    ```sh
    git clone https://github.com/dimuuu/lucidi.git
    ```
-3. Install NPM packages
+
+2. Install NPM packages
 
    ```sh
    pnpm install
    ```
-4. Run & build plugin
+
+3. Run & build plugin
 
    ```sh
    pnpm run dev
@@ -45,6 +48,6 @@ Distributed under the CC0 License. See `LICENSE` for more information.
 
 ## Contact
 
-Twitter: [@dimuuu_](https://twitter.com/dimuuu_)
+Twitter: [@dimuuu\_](https://twitter.com/dimuuu_)
 
 Email: dmytro.kondakov@gmail.com
