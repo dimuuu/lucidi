@@ -1,11 +1,11 @@
-export const matchNamePattern = (input: string, variables: any) => {
+export const matchNamePattern = (
+  input: string,
+  variables: Record<string, string | number | undefined>,
+): string => {
   const pattern = /\$(N|A)/g;
 
-  const replaced = input.replace(pattern, (match, name) => {
+  return input.replace(pattern, (_, name) => {
     const value = variables[name];
-
-    return value !== undefined ? value : match;
+    return value !== undefined ? String(value) : "Untitled";
   });
-
-  return replaced;
 };

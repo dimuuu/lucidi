@@ -33,13 +33,19 @@ Optionally rewrite and delete opacity styles that don't match your parameters.
 2. Install NPM packages
 
    ```sh
-   pnpm install
+   npm install
    ```
 
 3. Run & build plugin
 
    ```sh
-   pnpm run dev
+   npm run build
+   ```
+
+4. Run & watch changes
+
+   ```sh
+   npm run watch
    ```
 
 ## License
