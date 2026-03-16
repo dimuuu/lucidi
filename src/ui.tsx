@@ -1,30 +1,32 @@
 import { h } from "preact";
 import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
 import {
+  Banner,
   Bold,
   Button,
   Checkbox,
   Columns,
   Container,
-  MiddleAlign,
+  IconCheckCircle32,
+  LoadingIndicator,
   Muted,
   Preview,
   render,
   Stack,
   Text,
   Textbox,
-  TextboxNumeric,
   VerticalSpace,
 } from "@create-figma-plugin/ui";
-import { emit, once } from "@create-figma-plugin/utilities";
+import { emit, on, once } from "@create-figma-plugin/utilities";
 
 import {
   CloseHandler,
+  InitDataHandler,
   InitHandler,
-  InitParamsHandler,
-  InitStylesHandler,
-  LocalSolidColorStyle,
-  SyncStylesHandler,
+  LocalColorVariable,
+  SyncCompleteHandler,
+  SyncProgressHandler,
+  SyncVariablesHandler,
 } from "./types";
 import { matchNamePattern } from "./helpers";
 
@@ -32,7 +34,7 @@ const ColorStyleCircle = ({
   color,
   opacity,
 }: {
-  color: RGB;
+  color: RGBA;
   opacity: number;
 }) => {
   const solidColor = `rgba(${color.r * 255}, ${color.g * 255}, ${color.b * 255}, ${opacity / 100})`;
@@ -112,13 +114,26 @@ const ColorStyleCircle = ({
 };
 
 function Plugin() {
-  const [styles, setStyles] = useState<LocalSolidColorStyle[]>([]);
+  const [variables, setVariables] = useState<LocalColorVariable[]>([]);
   const [opacitiesString, setOpacitiesString] = useState<string>("");
   const [pattern, setPattern] = useState<string>("");
   const [shouldClean, setShouldClean] = useState<boolean>(false);
-  const [selectedStyleIds, setSelectedStyleIds] = useState<Set<string>>(
+  const [targetCollectionName, setTargetCollectionName] =
+    useState<string>("Lucidi Alphas");
+  const [selectedVariableIds, setSelectedVariableIds] = useState<Set<string>>(
     new Set<string>(),
   );
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [progress, setProgress] = useState<{
+    current: number;
+    total: number;
+    phase: string;
+  } | null>(null);
+  const [syncResult, setSyncResult] = useState<{
+    created: number;
+    updated: number;
+    removed: number;
+  } | null>(null);
 
   const opacities = useMemo(
     () =>
@@ -136,19 +151,22 @@ function Plugin() {
     emit<CloseHandler>("CLOSE");
   }, []);
 
-  const handleSyncStyles = useCallback(
+  const handleSyncVariables = useCallback(
     function () {
-      emit<SyncStylesHandler>("SYNC_STYLES", {
-        styleIds: Array.from(selectedStyleIds),
+      setIsLoading(true);
+      setSyncResult(null);
+      emit<SyncVariablesHandler>("SYNC_VARIABLES", {
+        variableIds: Array.from(selectedVariableIds),
         opacities,
         pattern,
         shouldClean,
+        targetCollectionName,
       });
     },
-    [selectedStyleIds, opacities, pattern, shouldClean],
+    [selectedVariableIds, opacities, pattern, shouldClean, targetCollectionName],
   );
 
-  const handleAppendStyleName = useCallback(function () {
+  const handleAppendVariableName = useCallback(function () {
     setPattern((pattern) => pattern + "$N");
   }, []);
 
@@ -156,36 +174,49 @@ function Plugin() {
     setPattern((pattern) => pattern + "$A");
   }, []);
 
-  const handleSelectStyle = useCallback(
-    (styleId: string) => {
-      setSelectedStyleIds((selectedStyleIds) => {
-        const newSelectedStyleIds = new Set(selectedStyleIds);
-        if (newSelectedStyleIds.has(styleId)) {
-          newSelectedStyleIds.delete(styleId);
+  const handleSelectVariable = useCallback(
+    (variableId: string) => {
+      setSelectedVariableIds((prev) => {
+        const next = new Set(prev);
+        if (next.has(variableId)) {
+          next.delete(variableId);
         } else {
-          newSelectedStyleIds.add(styleId);
+          next.add(variableId);
         }
-        return newSelectedStyleIds;
+        return next;
       });
     },
-    [setSelectedStyleIds],
+    [setSelectedVariableIds],
   );
+
+  const handleSelectAll = useCallback(() => {
+    setSelectedVariableIds(new Set(variables.map((v) => v.id)));
+  }, [variables]);
+
+  const handleDeselectAll = useCallback(() => {
+    setSelectedVariableIds(new Set());
+  }, []);
 
   useEffect(() => {
     emit<InitHandler>("INIT");
 
-    once<InitParamsHandler>("INIT_PARAMS", (params) => {
+    once<InitDataHandler>("INIT_DATA", ({ variables, collections, params }) => {
+      setVariables(variables);
       setOpacitiesString(params.opacities.join(", "));
       setPattern(params.pattern);
       setShouldClean(params.shouldClean);
+      setTargetCollectionName(params.targetCollectionName);
+      setSelectedVariableIds(new Set(variables.map((v) => v.id)));
     });
 
-    once<InitStylesHandler>("INIT_STYLES", (styles) => {
-      setStyles(styles);
+    on<SyncProgressHandler>("SYNC_PROGRESS", (p) => {
+      setProgress(p);
+    });
 
-      styles.forEach((style) => {
-        handleSelectStyle(style.id);
-      });
+    on<SyncCompleteHandler>("SYNC_COMPLETE", (result) => {
+      setSyncResult(result);
+      setIsLoading(false);
+      setProgress(null);
     });
   }, []);
 
@@ -197,12 +228,12 @@ function Plugin() {
           <div>
             <Text>
               <Muted>
-                Sync and update solid colors and matching opacity styles in the
+                Sync and update color variables with opacity variants in the
                 local library.
               </Muted>
             </Text>
             <VerticalSpace space="large" />
-            <Text>Opacity styles</Text>
+            <Text>Opacity values</Text>
             <VerticalSpace space="small" />
             <Textbox
               onValueInput={setOpacitiesString}
@@ -212,7 +243,7 @@ function Plugin() {
             <VerticalSpace space="small" />
             <Text>
               <Muted>
-                Enter values in [0-100] range separated with commas.
+                Enter values in [1-99] range separated with commas.
               </Muted>
             </Text>
             <VerticalSpace space="large" />
@@ -225,31 +256,55 @@ function Plugin() {
             />
             <VerticalSpace space="small" />
             <Columns space="extraSmall">
-              <Button fullWidth secondary onClick={handleAppendStyleName}>
-                Style name
+              <Button fullWidth secondary onClick={handleAppendVariableName}>
+                Variable name
               </Button>
               <Button fullWidth secondary onClick={handleAppendOpacity}>
                 Opacity
               </Button>
             </Columns>
+            <VerticalSpace space="large" />
+            <Text>Target collection</Text>
+            <VerticalSpace space="small" />
+            <Textbox
+              onValueInput={setTargetCollectionName}
+              value={targetCollectionName}
+              variant="border"
+            />
           </div>
 
           <Stack space="small">
-            <Text>
-              <Bold>Preview new styles</Bold>
-            </Text>
+            <Columns space="extraSmall">
+              <Text>
+                <Bold>Preview</Bold>
+              </Text>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  gap: "4px",
+                }}
+              >
+                <Button secondary onClick={handleSelectAll}>
+                  All
+                </Button>
+                <Button secondary onClick={handleDeselectAll}>
+                  None
+                </Button>
+              </div>
+            </Columns>
             <Preview
-              style={{ width: "200px", height: "212px", overflowX: "hidden" }}
+              style={{ width: "200px", height: "248px", overflowX: "hidden" }}
             >
               <Stack space="large">
-                {styles.map((style) => (
-                  <Container space="small" key={style.id}>
+                {variables.map((variable) => (
+                  <Container space="small" key={variable.id}>
                     <div style={{ margin: "0px 2px" }}>
                       <Checkbox
-                        onChange={() => handleSelectStyle(style.id)}
-                        value={selectedStyleIds.has(style.id)}
+                        onChange={() => handleSelectVariable(variable.id)}
+                        value={selectedVariableIds.has(variable.id)}
                       >
-                        <Text>{style.name}</Text>
+                        <Text>{variable.name}</Text>
                       </Checkbox>
                     </div>
                     <VerticalSpace space="small" />
@@ -261,20 +316,24 @@ function Plugin() {
                           gap: "6px",
                         }}
                       >
-                        <ColorStyleCircle color={style.color} opacity={100} />
+                        <ColorStyleCircle
+                          color={variable.color}
+                          opacity={100}
+                        />
                         <Text>
-                          <Muted>{style.name}</Muted>
+                          <Muted>{variable.name}</Muted>
                         </Text>
                       </div>
                       {pattern.length > 0 &&
                         opacities.map((opacity) => {
                           const name = matchNamePattern(pattern, {
-                            N: style.name,
+                            N: variable.name,
                             A: opacity,
                           });
 
                           return (
                             <div
+                              key={`${variable.id}-${opacity}`}
                               style={{
                                 display: "flex",
                                 alignItems: "center",
@@ -282,7 +341,7 @@ function Plugin() {
                               }}
                             >
                               <ColorStyleCircle
-                                color={style.color}
+                                color={variable.color}
                                 opacity={opacity}
                               />
                               <Text>
@@ -299,6 +358,30 @@ function Plugin() {
           </Stack>
         </Columns>
 
+        {isLoading && progress && (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+            }}
+          >
+            <LoadingIndicator />
+            <Text>
+              <Muted>
+                {progress.phase} ({progress.current}/{progress.total})
+              </Muted>
+            </Text>
+          </div>
+        )}
+
+        {syncResult && !isLoading && (
+          <Banner icon={<IconCheckCircle32 />}>
+            {syncResult.created} created, {syncResult.updated} updated,{" "}
+            {syncResult.removed} removed
+          </Banner>
+        )}
+
         <Columns space="extraSmall">
           <div
             style={{ display: "flex", alignItems: "center", height: "100%" }}
@@ -307,7 +390,7 @@ function Plugin() {
               onChange={(event) => setShouldClean(event.currentTarget.checked)}
               value={shouldClean}
             >
-              <Text>Clean up unused opacity styles</Text>
+              <Text>Clean up unused variants</Text>
             </Checkbox>
           </div>
           <div
@@ -318,10 +401,14 @@ function Plugin() {
             }}
           >
             <Button
-              onClick={handleSyncStyles}
-              disabled={opacities.length < 1 && selectedStyleIds.size < 1}
+              onClick={handleSyncVariables}
+              disabled={
+                opacities.length < 1 ||
+                selectedVariableIds.size < 1 ||
+                isLoading
+              }
             >
-              Create & sync styles
+              Create & sync variables
             </Button>
           </div>
         </Columns>
