@@ -1,22 +1,20 @@
-import { h } from "preact";
+import { h, render as preactRender } from "preact";
 import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
 import {
-  Banner,
-  Bold,
+  Badge,
   Button,
   Checkbox,
-  Columns,
-  Container,
-  IconCheckCircle32,
-  LoadingIndicator,
-  Muted,
-  Preview,
-  render,
+  Icon,
+  Input,
+  ScrollContainer,
+  Section,
+  Spacing,
+  Spinner,
   Stack,
   Text,
-  Textbox,
-  VerticalSpace,
-} from "@create-figma-plugin/ui";
+  check,
+} from "figma-plugin-preact-ui";
+import "figma-plugin-preact-ui/dist/style.css";
 import { emit, on, once } from "@create-figma-plugin/utilities";
 
 import {
@@ -221,94 +219,101 @@ function Plugin() {
   }, []);
 
   return (
-    <Container space="medium">
-      <VerticalSpace space="large" />
-      <Stack space="large">
-        <Columns space="large">
-          <div>
-            <Text>
-              <Muted>
-                Sync and update color variables with opacity variants in the
-                local library.
-              </Muted>
+    <Section
+      padding={{ top: "400", right: "400", bottom: "400", left: "400" }}
+    >
+      <Stack spacing="400">
+        <Stack direction="row" spacing="400">
+          <Stack spacing="200" fullWidth>
+            <Text intentModifiers="secondary">
+              Sync and update color variables with opacity variants in the
+              local library.
             </Text>
-            <VerticalSpace space="large" />
-            <Text>Opacity values</Text>
-            <VerticalSpace space="small" />
-            <Textbox
-              onValueInput={setOpacitiesString}
+            <Spacing size="200" />
+            <Text strong>Opacity values</Text>
+            <Input
+              onChange={({ value }) => setOpacitiesString(value)}
               value={opacitiesString}
-              variant="border"
             />
-            <VerticalSpace space="small" />
-            <Text>
-              <Muted>
-                Enter values in [1-99] range separated with commas.
-              </Muted>
+            <Text size="small" intentModifiers="secondary">
+              Enter values in [1-99] range separated with commas.
             </Text>
-            <VerticalSpace space="large" />
-            <Text>Name pattern</Text>
-            <VerticalSpace space="small" />
-            <Textbox
-              onValueInput={setPattern}
+            <Spacing size="200" />
+            <Text strong>Name pattern</Text>
+            <Input
+              onChange={({ value }) => setPattern(value)}
               value={pattern}
-              variant="border"
             />
-            <VerticalSpace space="small" />
-            <Columns space="extraSmall">
-              <Button fullWidth secondary onClick={handleAppendVariableName}>
+            <Stack direction="row" spacing="100">
+              <Button
+                fullWidth
+                intent="neutral"
+                onClick={handleAppendVariableName}
+              >
                 Variable name
               </Button>
-              <Button fullWidth secondary onClick={handleAppendOpacity}>
+              <Button
+                fullWidth
+                intent="neutral"
+                onClick={handleAppendOpacity}
+              >
                 Opacity
               </Button>
-            </Columns>
-            <VerticalSpace space="large" />
-            <Text>Target collection</Text>
-            <VerticalSpace space="small" />
-            <Textbox
-              onValueInput={setTargetCollectionName}
+            </Stack>
+            <Spacing size="200" />
+            <Text strong>Target collection</Text>
+            <Input
+              onChange={({ value }) => setTargetCollectionName(value)}
               value={targetCollectionName}
-              variant="border"
             />
-          </div>
+          </Stack>
 
-          <Stack space="small">
-            <Columns space="extraSmall">
-              <Text>
-                <Bold>Preview</Bold>
-              </Text>
+          <Stack spacing="200" fullWidth>
+            <Stack direction="row" spacing="100" y="center">
+              <Text strong>Preview</Text>
               <div
                 style={{
                   display: "flex",
                   justifyContent: "flex-end",
                   gap: "4px",
+                  flex: 1,
                 }}
               >
-                <Button secondary onClick={handleSelectAll}>
+                <Button intent="neutral" onClick={handleSelectAll}>
                   All
                 </Button>
-                <Button secondary onClick={handleDeselectAll}>
+                <Button intent="neutral" onClick={handleDeselectAll}>
                   None
                 </Button>
               </div>
-            </Columns>
-            <Preview
-              style={{ width: "200px", height: "248px", overflowX: "hidden" }}
+            </Stack>
+            <div
+              style={{
+                width: "200px",
+                height: "248px",
+                overflow: "auto",
+                border: "1px solid var(--figma-color-border)",
+                borderRadius: "4px",
+              }}
             >
-              <Stack space="large">
+              <Stack spacing="400">
                 {variables.map((variable) => (
-                  <Container space="small" key={variable.id}>
-                    <div style={{ margin: "0px 2px" }}>
-                      <Checkbox
-                        onChange={() => handleSelectVariable(variable.id)}
-                        value={selectedVariableIds.has(variable.id)}
-                      >
-                        <Text>{variable.name}</Text>
-                      </Checkbox>
-                    </div>
-                    <VerticalSpace space="small" />
-                    <Stack space="extraSmall">
+                  <Section
+                    key={variable.id}
+                    padding={{
+                      top: "200",
+                      right: "200",
+                      bottom: "200",
+                      left: "200",
+                    }}
+                  >
+                    <Checkbox
+                      onChange={() => handleSelectVariable(variable.id)}
+                      checked={selectedVariableIds.has(variable.id)}
+                      label={variable.name}
+                    />
+                    <Spacing size="200" />
+                    <Stack spacing="100">
                       <div
                         style={{
                           display: "flex",
@@ -320,8 +325,8 @@ function Plugin() {
                           color={variable.color}
                           opacity={100}
                         />
-                        <Text>
-                          <Muted>{variable.name}</Muted>
+                        <Text size="small" intentModifiers="secondary">
+                          {variable.name}
                         </Text>
                       </div>
                       {pattern.length > 0 &&
@@ -344,78 +349,60 @@ function Plugin() {
                                 color={variable.color}
                                 opacity={opacity}
                               />
-                              <Text>
-                                <Muted>{name}</Muted>
+                              <Text size="small" intentModifiers="secondary">
+                                {name}
                               </Text>
                             </div>
                           );
                         })}
                     </Stack>
-                  </Container>
+                  </Section>
                 ))}
               </Stack>
-            </Preview>
+            </div>
           </Stack>
-        </Columns>
+        </Stack>
 
         {isLoading && progress && (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-            }}
-          >
-            <LoadingIndicator />
-            <Text>
-              <Muted>
-                {progress.phase} ({progress.current}/{progress.total})
-              </Muted>
+          <Stack direction="row" spacing="200" y="center">
+            <Spinner />
+            <Text intentModifiers="secondary">
+              {progress.phase} ({progress.current}/{progress.total})
             </Text>
-          </div>
+          </Stack>
         )}
 
         {syncResult && !isLoading && (
-          <Banner icon={<IconCheckCircle32 />}>
+          <Badge intent="success" prefix={<Icon glyph={check} size={16} />}>
             {syncResult.created} created, {syncResult.updated} updated,{" "}
             {syncResult.removed} removed
-          </Banner>
+          </Badge>
         )}
 
-        <Columns space="extraSmall">
-          <div
-            style={{ display: "flex", alignItems: "center", height: "100%" }}
-          >
+        <Stack direction="row" spacing="100" y="center">
+          <div style={{ flex: 1 }}>
             <Checkbox
-              onChange={(event) => setShouldClean(event.currentTarget.checked)}
-              value={shouldClean}
-            >
-              <Text>Clean up unused variants</Text>
-            </Checkbox>
+              onChange={({ checked }) => setShouldClean(checked)}
+              checked={shouldClean}
+              label="Clean up unused variants"
+            />
           </div>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "flex-end",
-              height: "100%",
-            }}
+          <Button
+            onClick={handleSyncVariables}
+            disabled={
+              opacities.length < 1 ||
+              selectedVariableIds.size < 1 ||
+              isLoading
+            }
           >
-            <Button
-              onClick={handleSyncVariables}
-              disabled={
-                opacities.length < 1 ||
-                selectedVariableIds.size < 1 ||
-                isLoading
-              }
-            >
-              Create & sync variables
-            </Button>
-          </div>
-        </Columns>
+            Create & sync variables
+          </Button>
+        </Stack>
       </Stack>
-      <VerticalSpace space="large" />
-    </Container>
+    </Section>
   );
 }
 
-export default render(Plugin);
+export default function (rootNode: HTMLElement) {
+  preactRender(h(Plugin, {}), rootNode);
+}
