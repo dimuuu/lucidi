@@ -38,6 +38,13 @@
   resolved "https://registry.yarnpkg.com/@create-figma-plugin/tsconfig/-/tsconfig-3.2.1.tgz#ef613ffb8e0d54a8896771475d34bde2198dd58c"
   integrity sha512-jayhlYYTUAlGvDeL2GXuWZSWZE9xkYG9qU8Uy6EQMKcUHW4bFW9G1xoDGGoSh8rtvjxmUGpQM0BaKdJGzaI2DQ==
 
+"@create-figma-plugin/ui@^3.2.1":
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/@create-figma-plugin/ui/-/ui-3.2.1.tgz#5858aadba5cd326deebe8cf3fb6e7ed738fe2b2f"
+  integrity sha512-x2bUyu0gyUiupLpvbM2CCSV//FZjasR3YVWear6DYV4o95BzyV7NnMjr/4cDfuokFMgSSI7rclioRTGUn2Lu5Q==
+  dependencies:
+    "@create-figma-plugin/utilities" "^3.2.1"
+
 "@create-figma-plugin/utilities@^3.2.1":
   version "3.2.1"
   resolved "https://registry.yarnpkg.com/@create-figma-plugin/utilities/-/utilities-3.2.1.tgz#a8a13e3faba097e67789294529d0f18f9dbe1134"
@@ -209,11 +216,6 @@
   version "0.11.0"
   resolved "https://registry.yarnpkg.com/@pkgjs/parseargs/-/parseargs-0.11.0.tgz#a77ea742fab25775145434eb1d2328cf5013ac33"
   integrity sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==
-
-"@preact/compat@^18.3.2":
-  version "18.3.2"
-  resolved "https://registry.yarnpkg.com/@preact/compat/-/compat-18.3.2.tgz#4327e565260a71bddc51db5f6a05cc9fdb28a6e2"
-  integrity sha512-5vSl55K5yLMvocT7PBKxDOHGgYPjMrKQqqr6roSNjIXcJOtSgDDMjpiCAF3s7klRdmGrN75b/Przmjw8gmlg/w==
 
 "@sindresorhus/merge-streams@^2.1.0":
   version "2.3.0"
@@ -610,13 +612,6 @@ fastq@^1.6.0:
   integrity sha512-GGToxJ/w1x32s/D2EKND7kTil4n8OVk/9mycTc4VDza13lOvpUZTGX3mFSCtV9ksdGBVzvsyAVLM6mHFThxXxw==
   dependencies:
     reusify "^1.0.4"
-
-figma-plugin-preact-ui@^0.4.0:
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/figma-plugin-preact-ui/-/figma-plugin-preact-ui-0.4.0.tgz#fbf79edf28673868759c42ca97b33979dbdfae4d"
-  integrity sha512-55Ebk1RUnr4awktx8c0QYJU/zyoqe2MagVCDmqLDW+xkQug6jzlYp4fNsEYVyN26zOpWzgAYwjNLgsxXZa3NKQ==
-  dependencies:
-    react-colorful "^5.6.1"
 
 fill-range@^7.1.1:
   version "7.1.1"
@@ -1221,11 +1216,6 @@ queue-microtask@^1.2.2:
   version "1.2.3"
   resolved "https://registry.yarnpkg.com/queue-microtask/-/queue-microtask-1.2.3.tgz#4929228bbc724dfac43e0efb058caf7b6cfb6243"
   integrity sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==
-
-react-colorful@^5.6.1:
-  version "5.6.1"
-  resolved "https://registry.yarnpkg.com/react-colorful/-/react-colorful-5.6.1.tgz#7dc2aed2d7c72fac89694e834d179e32f3da563b"
-  integrity sha512-1exovf0uGTGyq5mXQT0zgQ80uvj2PCwvF8zY1RN9/vbJVSjSo3fsB/4L3ObbF7u70NduSiK4xu4Y6q1MHoUGEw==
 
 readdirp@~3.6.0:
   version "3.6.0"

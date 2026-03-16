@@ -1,8 +1,7 @@
 {
   "dependencies": {
+    "@create-figma-plugin/ui": "^3.2.1",
     "@create-figma-plugin/utilities": "^3.2.1",
-    "@preact/compat": "^18.3.2",
-    "figma-plugin-preact-ui": "^0.4.0",
     "preact": ">=10"
   },
   "devDependencies": {
